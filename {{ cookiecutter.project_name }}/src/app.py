@@ -22,13 +22,4 @@ def lambda_handler(event, context):
 
 @xray_recorder.capture('## get_message_segment')
 def get_message():
-    """
-        You can create a sub-segment specifically to a function
-        then capture what sub-segment that is inside your code
-        and you can add annotations that will be indexed by X-Ray
-        for example: put_annotation("operation", "query_db")
-    """
-    xray_subsegment = xray_recorder.current_subsegment()
-    xray_subsegment.put_annotation("key", "value")
-
     return {"hello": "world"}
