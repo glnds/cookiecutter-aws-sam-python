@@ -279,8 +279,8 @@ Resources:
                       Configuration:
                         ActionMode: CHANGE_SET_REPLACE
                         RoleArn: !GetAtt PipelineCloudFormationExecutionRole.Arn
-                        StackName: !Sub ${ApplicationName}-production
-                        ChangeSetName: !Sub ${ApplicationName}-changeset-production
+                        StackName: !Sub ${ApplicationName}
+                        ChangeSetName: !Sub ${ApplicationName}-changeset
                         TemplatePath: BuildZip::output.yml
                         TemplateConfiguration: BuildZip::configuration.json
                         Capabilities: CAPABILITY_NAMED_IAM
@@ -294,8 +294,8 @@ Resources:
                       Configuration:
                         ActionMode: CHANGE_SET_EXECUTE
                         RoleArn: !GetAtt PipelineCloudFormationExecutionRole.Arn
-                        StackName: !Sub ${ApplicationName}-production
-                        ChangeSetName: !Sub ${ApplicationName}-changeset-production
+                        StackName: !Sub ${ApplicationName}
+                        ChangeSetName: !Sub ${ApplicationName}-changeset
                       OutputArtifacts:
-                        - Name: !Sub ${ApplicationName}-changeset-production
+                        - Name: !Sub ${ApplicationName}-changeset
                       RunOrder: 2

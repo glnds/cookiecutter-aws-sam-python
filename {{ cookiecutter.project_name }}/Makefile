@@ -58,10 +58,10 @@ create-pipeline:
 	@echo "Creating Cloudformation Stack ${APP_NAME}-pipeline."
 	@aws cloudformation create-stack --stack-name ${APP_NAME}-pipeline --template-body file://pipeline.yaml --parameters \
 		ParameterKey=ApplicationName,ParameterValue=${APP_NAME} \
-		ParameterKey=ArtifactBucket,ParameterValue=dpp-artifacts-400007416746-eu-west-1-cfn \
+		ParameterKey=ArtifactBucket,ParameterValue={{ cookiecutter.artifacts_bucket }} \
 		ParameterKey=GitHubOAuthToken,ParameterValue=${OAUTH_TOKEN} \
-		ParameterKey=GitHubUser,ParameterValue=glnds \
-		ParameterKey=GitHubRepository,ParameterValue=sam-by-example \
+		ParameterKey=GitHubUser,ParameterValue={{ cookiecutter.github_user }} \
+		ParameterKey=GitHubRepository,ParameterValue={{ cookiecutter.github_repo }} \
 		ParameterKey=GitHubBranch,ParameterValue=master \
 		--region eu-west-1 --capabilities CAPABILITY_NAMED_IAM --output text
 	@echo "Waiting for Cloudformation stack to complete..."
@@ -75,10 +75,10 @@ update-pipeline:
 	@echo "updating Cloudformation Stack ${APP_NAME}-pipeline."
 	@aws cloudformation update-stack --stack-name ${APP_NAME}-pipeline --template-body file://pipeline.yaml --parameters \
 		ParameterKey=ApplicationName,ParameterValue=${APP_NAME} \
-		ParameterKey=ArtifactBucket,ParameterValue=dpp-artifacts-400007416746-eu-west-1-cfn \
+		ParameterKey=ArtifactBucket,ParameterValue={{ cookiecutter.artifacts_bucket }} \
 		ParameterKey=GitHubOAuthToken,ParameterValue=${OAUTH_TOKEN} \
-		ParameterKey=GitHubUser,ParameterValue=glnds \
-		ParameterKey=GitHubRepository,ParameterValue=sam-by-example \
+		ParameterKey=GitHubUser,ParameterValue={{ cookiecutter.github_user }} \
+		ParameterKey=GitHubRepository,ParameterValue={{ cookiecutter.github_repo }} \
 		ParameterKey=GitHubBranch,ParameterValue=master \
 		--region eu-west-1 --capabilities CAPABILITY_NAMED_IAM --output text
 	@echo "Waiting for Cloudformation update stack to complete..."
