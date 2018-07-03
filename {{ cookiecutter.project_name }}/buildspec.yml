@@ -1,0 +1,32 @@
+---
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - pip install pipenv
+  pre_build:
+    commands:
+      - pipenv install --dev
+      - pipenv run make test
+  build:
+    commands:
+      - cd $CODEBUILD_SRC_DIR
+      - pipenv run make clean-pyc
+      - test -d src/lib || mkdir src/lib
+      - test -d dist || mkdir dist
+      - pipenv lock -r > requirements.txt
+      - pip install -r requirements.txt -t src/lib
+      - cp config/*.json dist/
+      - cp -r src/lib/* src/
+      - >-
+        aws cloudformation package --template-file template.yaml
+        --s3-bucket $BUILD_OUTPUT_BUCKET
+        --s3-prefix $APP_NAME
+        --output-template-file dist/output.yml
+      - find . -ls
+artifacts:
+  files:
+    - '**/*'
+  discard-paths: no
+  base-directory: dist

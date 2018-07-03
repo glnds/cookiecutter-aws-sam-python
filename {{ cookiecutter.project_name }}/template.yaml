@@ -9,10 +9,9 @@ Description: >
 Globals:
     Function:
         Timeout: 5
-{%- if cookiecutter.include_safe_deployment == "y" %}
         AutoPublishAlias: live # More info about Safe Deployments: https://github.com/awslabs/serverless-application-model/blob/master/docs/safe_lambda_deployments.rst
         DeploymentPreference:
-            Type: Linear10PercentEvery1Minute {% endif %}
+            Type: Linear10PercentEvery1Minute
 
 
 Resources:
@@ -20,18 +19,16 @@ Resources:
     FirstFunction:
         Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
         Properties:
-            CodeUri: first_function/build/
+            CodeUri: /src
             Handler: app.lambda_handler
             Runtime: python3.6
-{%- if cookiecutter.include_xray == "y" %}
-            Tracing: Active {% endif %} # https://docs.aws.amazon.com/lambda/latest/dg/lambda-x-ray.html
-{%- if cookiecutter.include_apigw == "y" %}
+            Tracing: Active
             Events:
                 CatchAll:
                     Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
                     Properties:
-                        Path: /first/{proxy+}
-                        Method: any {% endif %}
+                        Path: /rest/{proxy+}
+                        Method: any
             Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
                 Variables:
                     PARAM1: VALUE
@@ -52,11 +49,9 @@ Resources:
                 - !Ref FirstFunctionRole # Sample policy to demonstrate Implicit IAM Role created with SAM
 
 Outputs:
-{% if cookiecutter.include_apigw == "y"%}
     FirstApigwURL:
       Description: "API Gateway endpoint URL for Prod environment for First Function"
       Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/first/proxy"
-{%- endif %}
 
     FirstFunction:
       Description: "First Lambda Function ARN"
