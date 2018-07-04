@@ -8,20 +8,19 @@ Description: >
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
     Function:
+        CodeUri: src/
+        Runtime: python3.6
         Timeout: 5
+        MemorySize: 128
         AutoPublishAlias: live # More info about Safe Deployments: https://github.com/awslabs/serverless-application-model/blob/master/docs/safe_lambda_deployments.rst
         DeploymentPreference:
             Type: Linear10PercentEvery1Minute
 
-
 Resources:
-
-    FirstFunction:
+    LambdaOneFunction:
         Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
         Properties:
-            CodeUri: /src
-            Handler: app.lambda_handler
-            Runtime: python3.6
+            Handler: my_module/lambda_one.lambda_handler
             Tracing: Active
             Events:
                 CatchAll:
@@ -34,26 +33,25 @@ Resources:
                     PARAM1: VALUE
 
     # Sample policy to add additional permissions to your Lambda
-    FirstFunctionAdditionalPermission:
-        Type: "AWS::IAM::Policy"
+    LambdaOneFunctionAdditionalPermission:
+        Type: AWS::IAM::Policy
         Properties:
-            PolicyName: "root"
+            PolicyName: root
             PolicyDocument:
                 Version: "2012-10-17"
                 Statement:
                     -
-                        Effect: "Allow"
-                        Action: "ssm:GetParameters"
+                        Effect: Allow
+                        Action: ssm:GetParameters
                         Resource: "*"
             Roles:
-                - !Ref FirstFunctionRole # Sample policy to demonstrate Implicit IAM Role created with SAM
+                - !Ref LambdaOneFunctionRole # Sample policy to demonstrate Implicit IAM Role created with SAM
 
 Outputs:
     FirstApigwURL:
       Description: "API Gateway endpoint URL for Prod environment for First Function"
       Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/first/proxy"
-
-    FirstFunction:
-      Description: "First Lambda Function ARN"
-      Value: !GetAtt FirstFunction.Arn
+    LambdaOneFunction:
+      Description: "Lambda One Function ARN"
+      Value: !GetAtt LambdaOneFunction.Arn
 
