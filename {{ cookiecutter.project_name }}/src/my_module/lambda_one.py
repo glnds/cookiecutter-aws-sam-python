@@ -32,4 +32,5 @@ def lambda_handler(event, context):
     except Exception as err:  # pragma: no cover
         logger.error(str(err))
         traceback.print_exc()
-        return {"statusCode": 500, "body": 'Internal Server Error'}
+        raise err
+        # return {"statusCode": 500, "body": 'Internal Server Error'}
