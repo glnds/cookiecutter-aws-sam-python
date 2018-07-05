@@ -13,7 +13,7 @@ Globals:
         MemorySize: 128
         AutoPublishAlias: live # More info about Safe Deployments: https://github.com/awslabs/serverless-application-model/blob/master/docs/safe_lambda_deployments.rst
         DeploymentPreference:
-            Type: Linear10PercentEvery1Minute
+            Type: Canary10Percent5Minutes
 
 Resources:
     LambdaOneFunction:
@@ -47,6 +47,19 @@ Resources:
             Roles:
                 - !Ref LambdaOneFunctionRole # Sample policy to demonstrate Implicit IAM Role created with SAM
 
+    LambdaTwoFunction:
+        Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+        Properties:
+            Handler: my_module/lambda_two.lambda_handler
+            CodeUri: src/
+            Tracing: Active
+            Events:
+                GetResource:
+                    Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+                    Properties:
+                        Path: /rest/two
+                        Method: get
+
 Outputs:
     FirstApigwURL:
       Description: "API Gateway endpoint URL for Prod environment for First Function"
@@ -54,4 +67,6 @@ Outputs:
     LambdaOneFunction:
       Description: "Lambda One Function ARN"
       Value: !GetAtt LambdaOneFunction.Arn
-
+    LambdaTwoFunction:
+      Description: "Lambda Two Function ARN"
+      Value: !GetAtt LambdaTwoFunction.Arn
