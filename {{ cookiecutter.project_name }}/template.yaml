@@ -17,6 +17,19 @@ Globals:
       Type: Canary10Percent5Minutes
 
 Resources:
+  # ApiGateway:
+  #   Type: AWS::Serverless::Api
+  #   Properties:
+  #     Name: {{ cookiecutter.project_name.lower().replace(' ', '-') }}
+  #     DefinitionUri: swagger.yml
+  #     StageName: Prod
+  #     MethodSettings:
+  #       - MetricsEnabled: True
+  #         LoggingLevel: INFO
+  #         ResourcePath: "/"
+  #         HttpMethod: "*"
+  #         DataTraceEnabled: True
+
   LambdaOneFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
@@ -64,7 +77,7 @@ Resources:
       Period: 60
       Statistic: Sum
       Threshold: 0
-      TreatMissingData: missing
+      TreatMissingData: notBreaching
 
   LambdaOneLiveErrorAlarm:
     Type: AWS::CloudWatch::Alarm
@@ -84,7 +97,7 @@ Resources:
       Period: 60
       Statistic: Sum
       Threshold: 0
-      TreatMissingData: missing
+      TreatMissingData: notBreaching
 
   PreTrafficLambdaOneFunction:
     Type: AWS::Serverless::Function
@@ -104,7 +117,9 @@ Resources:
         Version: "2012-10-17"
         Statement:
           - Effect: Allow
-            Action: lambda:InvokeFunction
+            Action: 
+              - lambda:InvokeFunction
+              - codedeploy:PutLifecycleEventHookExecutionStatus
             Resource: "*"
       Roles:
         - !Ref PreTrafficLambdaOneFunctionRole # Sample policy to demonstrate Implicit IAM Role created with SAM
@@ -127,6 +142,50 @@ Resources:
           Properties:
             Path: /rest/two
             Method: get
+      DeploymentPreference:
+        Alarms:
+          - !Ref LambdaTwoErrorAlarm
+          - !Ref LambdaTwoLiveErrorAlarm
+
+  LambdaTwoErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: errors on lambda two
+      AlarmName: Check-Lambda-Two-Errors
+      ActionsEnabled: True
+      ComparisonOperator: GreaterThanThreshold
+      EvaluationPeriods: 1
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref LambdaTwoFunction
+        - Name: Resource
+          Value: !Ref LambdaTwoFunction
+      Period: 60
+      Statistic: Sum
+      Threshold: 0
+      TreatMissingData: notBreaching
+
+  LambdaTwoLiveErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: errors on lambda two live alias
+      AlarmName: Check-Lambda-Two-Live-Errors
+      ActionsEnabled: True
+      ComparisonOperator: GreaterThanThreshold
+      EvaluationPeriods: 1
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref LambdaTwoFunction
+        - Name: Resource
+          Value: !Join [ ':', [ !Ref LambdaTwoFunction, 'live' ] ]
+      Period: 60
+      Statistic: Sum
+      Threshold: 0
+      TreatMissingData: notBreaching
 
 Outputs:
   FirstApigwURL:

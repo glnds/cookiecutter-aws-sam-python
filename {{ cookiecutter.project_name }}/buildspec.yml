@@ -25,6 +25,7 @@ phases:
         --s3-prefix $APP_NAME
         --output-template-file dist/output.yml
       # - find . -ls
+      # - cp swagger.yml dist/swagger.yml
 artifacts:
   files:
     - '**/*'
