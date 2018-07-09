@@ -91,7 +91,7 @@ Resources:
               Type: CODEPIPELINE
             Environment:
                 Type: LINUX_CONTAINER
-                ComputeType: BUILD_GENERAL1_SMALL
+                ComputeType: BUILD_GENERAL1_MEDIUM
                 Image: aws/codebuild/python:3.6.5
                 EnvironmentVariables:
                   - Name: BUILD_OUTPUT_BUCKET
