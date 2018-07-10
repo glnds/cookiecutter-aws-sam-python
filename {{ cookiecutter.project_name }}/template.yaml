@@ -41,7 +41,7 @@ Resources:
     Properties:
       FunctionName: lambda-one-cfn
       Handler: my_module/lambda_one.lambda_handler
-      CodeUri: src/
+      CodeUri: build/
       Events:
         GetResource:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
@@ -104,7 +104,7 @@ Resources:
     Properties:
       FunctionName: CodeDeployHook_lamda-one-pre-traffic-cfn
       Handler: my_module/lambda_one_pre_traffic_hook.handler
-      CodeUri: src/
+      CodeUri: build/
       DeploymentPreference:
         Enabled: false
 
@@ -135,7 +135,7 @@ Resources:
     Properties:
       FunctionName: lambda-two-cfn
       Handler: my_module/lambda_two.lambda_handler
-      CodeUri: src/
+      CodeUri: build/
       Events:
         GetResource:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api

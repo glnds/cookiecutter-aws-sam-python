@@ -7,15 +7,34 @@
 * AWS CLI already configured with at least PowerUser permission
 * [Python 3 installed](https://www.python.org/downloads/)
 * [Pipenv installed](https://github.com/pypa/pipenv)
-    - `pip install pipenv`
+    - `pip install --user pipenv`
 * [Docker installed](https://www.docker.com/community-edition)
-* [SAM Local installed](https://github.com/awslabs/aws-sam-local) 
+* [AWS SAM CLI installed](https://github.com/awslabs/aws-sam-cli) 
+	- `pip install --user aws-sam-cli`
 
-Provided that you have requirements above installed, proceed by installing the application dependencies and development dependencies:
+Provided that you have the requirements above installed, proceed by installing the application dependencies and development dependencies:
 
 ```bash
 pipenv install
 pipenv install -d
+```
+
+### AWS SAM
+
+This project uses [AWS Serverless Application Model (AWS SAM)](https://github.com/awslabs/serverless-application-model).
+
+> **See [Serverless Application Model (SAM) HOWTO Guide](https://github.com/awslabs/serverless-application-model/blob/master/HOWTO.md) for more details in how to get started.**
+
+
+## Add your code to Github
+https://help.github.com/articles/adding-an-existing-project-to-github-using-the-command-line/
+
+```bash
+git init
+git add .
+git commit -m "Initial commit"
+git remote add origin git@github.com:{{ cookiecutter.github_user }}/{{ github_repo }}.git
+git push -u origin master
 ```
 
 ## Testing
@@ -23,100 +42,71 @@ pipenv install -d
 `Pytest` is used to discover tests created under `tests` folder - Here's how you can run tests our initial unit tests:
 
 ```bash
-AWS_XRAY_CONTEXT_MISSING=LOG_ERROR pipenv run python -m pytest tests/ -v
+make test
 ```
 
-**Tip**: Commands passed to `pipenv run` will be executed in the Virtual environment created for our project.
+## Local development with AWS SAM CLI 
 
-## Packaging
-
-AWS Lambda Python runtime requires a flat folder with all dependencies including the application. To facilitate this process, the pre-made SAM template expects this structure to be under `first_function/build/`:
-
-```yaml
-...
-    FirstFunction:
-        Type: AWS::Serverless::Function
-        Properties:
-            CodeUri: first_function/build/
-            ...
+In order to run your code locally all dependencies need to be build and packaged on your local machine:
+```
+make build
 ```
 
-With that in mind, we will:
-
-1. Generate a hashed `requirements.txt` out of our `Pipfile` dep file
-1. Install all dependencies directly to `build` sub-folder
-2. Copy our function (app.py) into `build` sub-folder
+Afterwards invoking your functions locally through a local API Gateway can be achieved by running:
 
 ```bash
-# Create a hashed pip requirements.txt file only with our app dependencies (no dev deps)
-pipenv lock -r > requirements.txt
-pip install -r requirements.txt -t first_function/build/
-cp -R first_function/app.py first_function/build/
+make sam
 ```
 
-### Local development
+If the previous command ran successfully you should now be able to hit the following local endpoint to invoke your functions:
+- `http://localhost:3000/rest/one`
+- `http://localhost:3000/rest/two`
 
-Given that you followed Packaging instructions then run the following to invoke your function locally:
 
-**Invoking function locally through local API Gateway**
+## Continuous Deployment
+
+### GitHub
+
+In order to install the pipeline a GitHub token is required.
+To create a token go to: https://github.com/settings/tokens
+
+**Create a token with ```repo``` and ```admin:repo_hook``` permissions.**
+
+### Deploying CodePipeline
+
+A pipeline is included in this stack in order to make it easy to deploy your code on AWS. The pipeline has 3 steps:
+
+1. **Source**: listen for Github code changes
+1. **Build**: 
+	- clean the workspace
+	- lint your code and run unit tests
+	- package the code for deployment
+1. **Deploy**: deploy your code through CloudFormation on AWS
+
+
+To install the pipeline run:
 
 ```bash
-sam local start-api
+make create-pipeline OAUTH_TOKEN=your_github_token 
+```
+To update the pipeline run:
+
+```bash
+make update-pipeline OAUTH_TOKEN=your_github_token
 ```
 
-If the previous command run successfully you should now be able to hit the following local endpoint to invoke your function `http://localhost:3000/first/REPLACE-ME-WITH-ANYTHING`.
-
-
-## Deployment
-
-First and foremost, we need a S3 bucket where we can upload our Lambda functions packaged as ZIP before we deploy anything - If you don't have a S3 bucket to store code artifacts then this is a good time to create one:
+To remove the pipeline run:
 
 ```bash
-aws s3 mb s3://BUCKET_NAME
+make delete-pipeline
 ```
 
-Provided you have a S3 bucket created, run the following command to package our Lambda function to S3:
+## Appendix
 
-```bash
-aws cloudformation package \
-    --template-file template.yaml \
-    --output-template-file packaged.yaml \
-    --s3-bucket REPLACE_THIS_WITH_YOUR_S3_BUCKET_NAME
-```
-
-Next, the following command will create a Cloudformation Stack and deploy your SAM resources.
-
-```bash
-aws cloudformation deploy \
-    --template-file packaged.yaml \
-    --stack-name {{ cookiecutter.project_name.lower().replace(' ', '-') }} \
-    --capabilities CAPABILITY_IAM
-```
-
-> **See [Serverless Application Model (SAM) HOWTO Guide](https://github.com/awslabs/serverless-application-model/blob/master/HOWTO.md) for more details in how to get started.**
-
-After deployment is complete you can run the following command to retrieve the API Gateway Endpoint URL:
-
-```bash
-aws cloudformation describe-stacks \
-    --stack-name {{ cookiecutter.project_name.lower().replace(' ', '-') }} \
-    --query 'Stacks[].Outputs'
-``` 
-
-# Appendix
-
-## Makefile
+### Makefile
 
 It is important that the Makefile created only works on OSX/Linux but the tasks above can easily be turned into a Powershell or any scripting language you may want too.
 
-The following make targets will automate that we went through above:
+Find all available targets: `make help`
 
-* Find all available targets: `make`
-* Install all deps and clone (OS hard link) our lambda function to `/build`: `make build SERVICE="first_function"`
-    - `SERVICE="first_function"` tells Make to start the building process from there
-    - By creating a hard link we no longer need to keep copying our app over to Build and keeps it tidy and clean
-* Run `Pytest` against all tests found under `tests` folder: `make test`
-* Install all deps and builds a ZIP file ready to be deployed: `make package SERVICE="first_function"`
-    - You can also build deps and a ZIP file within a Docker Lambda container: `make package SERVICE="first_function" DOCKER=1`
-    - **This is particularly useful when using C-extensions that if built on your OS may not work when deployed to Lambda (different OS)**
 

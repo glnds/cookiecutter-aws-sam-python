@@ -19,38 +19,56 @@ __check_defined = \
       $(error Undefined $1$(if $2, ($2))))
 
 # Remove all python artifacts.
-clean-pyc:
-	@echo "Removing python artifacts..."
+clean:
+	$(info [*] Destroying environment....)
+	rm -fr build/
+	rm -fr dist/
+	rm -f requirements.txt
+	find . -name '*.orig' -exec rm -f {} +
 	find . -name '*.pyc' -exec rm -f {} +
 	find . -name '*.pyo' -exec rm -f {} +
 	find . -name '*~' -exec rm -f  {} +
-.PHONY: clean-pyc
+	find . -name '__pycache__' -exec rm -fr {} +
+.PHONY: clean
 
-# Run the unit tests.
-unittest:
-	@echo "Running unittests..."
-	AWS_XRAY_CONTEXT_MISSING=LOG_ERROR pytest -s -v .
-.PHONY: unittest
+install: _install_packages _install_dev_packages
+.PHONY: install
+
+uninstall:
+	$(info [*] Destroy entire virtualenv....)
+	@pipenv --rm
+.PHONY: uninstall
 
 # Lint python code.
 lint:
-	@echo "Running Python Codestyle check..."
-	pycodestyle --max-line-length 100 --ignore E402,W503,E704 --statistics --exclude=src/lib/* .
+	$(info [*] Running python codestyle check....)
+	@pipenv run pycodestyle --max-line-length 100 --ignore E402,W503,E704 --statistics src/
 .PHONY: lint
+
+# Run the unit tests.
+test: lint
+	$(info [*] Running pytest on tests/....)
+	@AWS_XRAY_CONTEXT_MISSING=LOG_ERROR pipenv run python -m pytest -s -v tests/
+
+# Run the unit tests.
+# unittest:
+# 	@echo "Running unittests..."
+# 	AWS_XRAY_CONTEXT_MISSING=LOG_ERROR pytest -s -v .
+# .PHONY: unittest
 
 # Run test coverage.
 coverage:
-	@echo "Run unittests and report on coverage..."
-	pytest -s -v --cov-report html --cov-report term --no-cov-on-fail --cov-fail-under=35 --cov-branch --cov-config .coveragerc --cov src/
+	$(info [*] Running test coverage on tests/....)
+	@AWS_XRAY_CONTEXT_MISSING=LOG_ERROR pipenv run python -m pytest --cov=src \
+		--cov-report term-missing --no-cov-on-fail --cov-fail-under 35 tests/ -v
 .PHONY: coverage
 
-# Run clean-pyc, lint and unittest targets.
-test: clean-pyc lint unittest
-.PHONY: test
+build: _clone_service_to_build _install_deps
+.PHONY: build
 
-# Run clean-pyc, lint and coverage targets.
-fulltest: clean-pyc lint coverage
-.PHONY: fulltest
+sam: _clone_service_to_build
+	sam local start-api
+.PHONY: sam
 
 # Create the CloudFormation stack.
 create-pipeline:
@@ -94,3 +112,29 @@ delete-pipeline:
 	@aws cloudformation wait stack-delete-complete --region eu-west-1 --stack-name ${APP_NAME}-pipeline
 	@echo "Stack removed!"
 .PHONY: delete-pipeline
+
+###################
+#     Helpers     #
+###################
+
+_install_packages:
+	$(info [*] Install required packages....)
+	@pipenv install
+
+_install_dev_packages:
+	$(info [*] Install required dev-packages....)
+	@pipenv install -d
+
+_install_deps:
+	$(info [*] Installing service dependencies....)
+	@test -d build/ || mkdir build/
+	@pipenv lock -r > requirements.txt
+	@pipenv run pip install \
+		--isolated \
+		--disable-pip-version-check \
+		-Ur requirements.txt -t build/
+
+_clone_service_to_build:
+	$(info [*] Cloning '$(SERVICE)' to build directory....)
+	@test -d build/ || mkdir build/
+	cp -av src/* build/
