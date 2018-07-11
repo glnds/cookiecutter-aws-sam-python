@@ -21,13 +21,13 @@ Resources:
     Type: AWS::Serverless::Api
     Properties:
       Name: {{ cookiecutter.project_name.lower().replace(' ', '-') }}
-      DefinitionUri: swagger.yml
+      DefinitionUri: swagger.yaml
       StageName: Prod
       EndpointConfiguration: REGIONAL
       Variables:
         Region: !Ref AWS::Region
         AccountId: !Ref AWS::AccountId
-        ApidocsUrl: s3-eu-west-1.amazonaws.com/{{ cookiecutter.artifacts_bucket }}/{{ cookiecutter.project_name.lower().replace(' ', '-') }}/docs/index.html"
+        ApidocsUrl: s3-eu-west-1.amazonaws.com/{{ cookiecutter.artifacts_bucket }}/{{ cookiecutter.project_name.lower().replace(' ', '-') }}/docs/index.html
       MethodSettings:
         - MetricsEnabled: True
           LoggingLevel: INFO
@@ -195,9 +195,9 @@ Resources:
       TreatMissingData: notBreaching
 
 Outputs:
-  FirstApigwURL:
-    Description: "API Gateway endpoint URL for Prod environment for First Function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/first/proxy"
+  # FirstApigwURL:
+  #   Description: "API Gateway endpoint URL for Prod environment for First Function"
+  #   Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/first/proxy"
   LambdaOneFunction:
     Description: "Lambda One Function ARN"
     Value: !GetAtt LambdaOneFunction.Arn
