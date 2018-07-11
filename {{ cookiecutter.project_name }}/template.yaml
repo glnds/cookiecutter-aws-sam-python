@@ -17,18 +17,23 @@ Globals:
       Type: Canary10Percent5Minutes
 
 Resources:
-  # ApiGateway:
-  #   Type: AWS::Serverless::Api
-  #   Properties:
-  #     Name: {{ cookiecutter.project_name.lower().replace(' ', '-') }}
-  #     DefinitionUri: swagger.yml
-  #     StageName: Prod
-  #     MethodSettings:
-  #       - MetricsEnabled: True
-  #         LoggingLevel: INFO
-  #         ResourcePath: "/"
-  #         HttpMethod: "*"
-  #         DataTraceEnabled: True
+  ApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: {{ cookiecutter.project_name.lower().replace(' ', '-') }}
+      DefinitionUri: swagger.yml
+      StageName: Prod
+      EndpointConfiguration: REGIONAL
+      Variables:
+        Region: !Ref AWS::Region
+        AccountId: !Ref AWS::AccountId
+        ApidocsUrl: s3-eu-west-1.amazonaws.com/{{ cookiecutter.artifacts_bucket }}/{{ cookiecutter.project_name.lower().replace(' ', '-') }}/docs/index.html"
+      MethodSettings:
+        - MetricsEnabled: True
+          LoggingLevel: INFO
+          ResourcePath: "/"
+          HttpMethod: "*"
+          DataTraceEnabled: True
 
   LambdaOneFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -46,8 +51,9 @@ Resources:
         GetResource:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
           Properties:
+            RestApiId: !Ref ApiGateway
             Path: /rest/one
-            Method: get
+            Method: GET
       Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
         Variables:
           PARAM1: VALUE
@@ -117,7 +123,7 @@ Resources:
         Version: "2012-10-17"
         Statement:
           - Effect: Allow
-            Action: 
+            Action:
               - lambda:InvokeFunction
               - codedeploy:PutLifecycleEventHookExecutionStatus
             Resource: "*"
@@ -140,8 +146,9 @@ Resources:
         GetResource:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
           Properties:
+            RestApiId: !Ref ApiGateway
             Path: /rest/two
-            Method: get
+            Method: GET
       DeploymentPreference:
         Alarms:
           - !Ref LambdaTwoErrorAlarm
