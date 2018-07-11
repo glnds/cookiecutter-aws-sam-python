@@ -27,15 +27,16 @@ This project uses [AWS Serverless Application Model (AWS SAM)](https://github.co
 
 
 ## Add your code to Github
-https://help.github.com/articles/adding-an-existing-project-to-github-using-the-command-line/
+1. In your GitHub create a new repository named `{{ cookiecutter.github_repo }}.
+2. [Add your code to Github](https://help.github.com/articles/adding-an-existing-project-to-github-using-the-command-line/):
 
-```bash
-git init
-git add .
-git commit -m "Initial commit"
-git remote add origin git@github.com:{{ cookiecutter.github_user }}/{{ cookiecutter.github_repo }}.git
-git push -u origin master
-```
+	```bash
+	git init
+	git add .
+	git commit -m "Initial commit"
+	git remote add origin git@github.com:{{ cookiecutter.github_user }}/	{{ cookiecutter.github_repo }}.git
+	git push -u origin master
+	```
 
 ## Testing
 
