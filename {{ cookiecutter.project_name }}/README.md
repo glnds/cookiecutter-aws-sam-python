@@ -33,7 +33,7 @@ https://help.github.com/articles/adding-an-existing-project-to-github-using-the-
 git init
 git add .
 git commit -m "Initial commit"
-git remote add origin git@github.com:{{ cookiecutter.github_user }}/{{ github_repo }}.git
+git remote add origin git@github.com:{{ cookiecutter.github_user }}/{{ cookiecutter.github_repo }}.git
 git push -u origin master
 ```
 
