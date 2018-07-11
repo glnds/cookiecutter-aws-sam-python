@@ -20,6 +20,7 @@ def lambda_handler(event, context):
         message = {
             'status': 'ok'
         }
+        # raise Exception('Simulate error')
         return {"statusCode": 200, "body": json.dumps(message)}
 
     except Exception as err:  # pragma: no cover
