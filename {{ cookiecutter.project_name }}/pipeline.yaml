@@ -106,6 +106,30 @@ Resources:
             Source:
                 Type: CODEPIPELINE
 
+    # Codebuild Swagger-ui
+    CodeBuildSwaggerUI:
+        Type: AWS::CodeBuild::Project
+        Properties:
+            Name: !Sub ${ApplicationName}--swaggerui-build-cfn
+            Description: !Sub Deploy Swagger UI for ${ApplicationName}
+            Artifacts:
+                Type: CODEPIPELINE
+            Environment:
+                Type: LINUX_CONTAINER
+                ComputeType: BUILD_GENERAL1_MEDIUM
+                Image: aws/codebuild/python:3.6.5
+            ServiceRole: !GetAtt CodeBuildServiceRole.Arn
+            Source:
+                Type: CODEPIPELINE
+                BuildSpec: !Sub |
+                    version: 0.1
+                    phases:
+                        post_build:
+                            commands:
+                              - chmod +x swagger_build.sh
+                              - ./swagger_build.sh
+                              - aws s3 cp --recursive --acl public-read ./swagger-ui/dist s3://{{ cookiecutter.artifacts_bucket }}/{{ cookiecutter.project_name.lower().replace(' ', '-') }}/docs
+
     CodePipelineServiceRole:
         Type: AWS::IAM::Role
         Properties:
@@ -299,3 +323,14 @@ Resources:
                       OutputArtifacts:
                         - Name: !Sub ${ApplicationName}-changeset
                       RunOrder: 2
+                    - Name: DeploySwaggerUI
+                      ActionTypeId:
+                        Category: Build
+                        Owner: AWS
+                        Version: 1
+                        Provider: CodeBuild
+                      InputArtifacts:
+                        - Name: BuildZip
+                      Configuration:
+                        ProjectName: !Ref CodeBuildSwaggerUI
+                      RunOrder: 3
