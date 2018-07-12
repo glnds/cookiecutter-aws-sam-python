@@ -6,7 +6,7 @@ info:
   title: "{{ cookiecutter.project_name }}"
   description: "{{ cookiecutter.project_short_description }}"
 # host: "<<base_url_placeholder>>"
-basePath: "Prod"
+basePath: "/Prod"
 schemes:
   - "https"
 paths:
