@@ -2,15 +2,6 @@
 
 This project has build on the **GitOps** principles, so this Git repo act as your **Source of Truth**.....Elaborate on DR, IAC,....
 
-## TODO (prioritised)
-1. Create an application bucket to hold all artefacts and documentation
-	Set correct CORS for swagger....
-1. Add a custom domain name 
-1. Add DLQ
-1. Add a post hook example
-1. Add a custom metric
-1. teardown. delete stack then pipeline. Describe + add make target
-
 ## Technology stack
 
 ### AWS SAM
