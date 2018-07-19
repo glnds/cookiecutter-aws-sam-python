@@ -4,28 +4,6 @@ This is a [Cookiecutter](https://github.com/audreyr/cookiecutter) template to cr
 
 It is important to note that you should not try to `git clone` this project but use `cookiecutter` CLI instead as ``{{cookiecutter.project_slug}}`` will be rendered based on your input and therefore all variables and files will be rendered properly.
 
-## TODO (prioritised)
-1. Fix API GW logs
-1. Add a name prefix so multiple stacks can be deployed in the same account
-1. Test behaviour when API GW role is already present
-1. Extend X-Ray functionality
-1. Add persistency (DynamoDB) in a separate pipeline
-1. Add BitBucket support
-1. Create an application bucket to hold all artefacts and documentation
-	Set correct CORS for swagger....
-1. Add a custom domain name 
-1. Add DLQ
-1. Add a post hook example
-1. Add a custom metric
-1. teardown. delete stack then pipeline. Describe + add make target
-1. Add a Build badge to the Readme
-1. Add Support for Golang and NodeJS
-1. Describe project layout: Pipeline.yml, output.yml, buildspec, ...
-1. Describe features: CodePipeline, doint the Heavy lifting, Gitops
-1. Add option for ELK stack
-
-
-Blog post:  CN V1&2, Paved road, GitOps, Heavy lifting....
 
 ## Requirements
 

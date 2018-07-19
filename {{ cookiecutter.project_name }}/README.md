@@ -20,7 +20,7 @@ A pipeline is included in this stack in order to deploy your code on AWS. The pi
 	- lint your code and run unit tests
 	- package the code for deployment
 1. **Deploy**: 
-	- Create a CloudFormation change et
+	- Create a CloudFormation changeset
 	- Deploy your code through CloudFormation on AWS
 	- Use CodeBuild to parse swagger.yaml and deploy the API docs
 
