@@ -2,7 +2,7 @@
 set -x
 
 SERVICE_NAME="test"
-DOC_URL="https://s3-eu-west-1.amazonaws.com/{{ cookiecutter.artifacts_bucket }}/{{ cookiecutter.project_name.lower().replace(' ', '-') }}/docs"
+DOC_URL="https://s3-eu-west-1.amazonaws.com/{{ cookiecutter.project_name.lower().replace(' ', '-') }}-{{ cookiecutter.cloudformation_resource_suffix.lower() }}-cfn/docs"
 
 SWAGGER_UI_VERSION='3.17.3'
 SWAGGER_UI_URL="https://github.com/swagger-api/swagger-ui/archive/v${SWAGGER_UI_VERSION}.zip"

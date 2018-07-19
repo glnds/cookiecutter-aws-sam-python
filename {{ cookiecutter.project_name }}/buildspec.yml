@@ -22,7 +22,7 @@ phases:
       - >-
         aws cloudformation package --template-file template.yaml
         --s3-bucket $BUILD_OUTPUT_BUCKET
-        --s3-prefix $APP_NAME
+        --s3-prefix artifacts
         --output-template-file dist/output.yml
 artifacts:
   files:

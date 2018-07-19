@@ -49,7 +49,7 @@ paths:
         responses:
           default:
             statusCode: "200"
-        uri: arn:aws:apigateway:__REGION__:lambda:path/2015-03-31/functions/arn:aws:lambda:__REGION__:__ACCOUNTID__:function:lambda-one-cfn:live/invocations
+        uri: arn:aws:apigateway:__REGION__:lambda:path/2015-03-31/functions/arn:aws:lambda:__REGION__:__ACCOUNTID__:function:lambda-one-{{ cookiecutter.cloudformation_resource_suffix.lower() }}-cfn:live/invocations
         passthroughBehavior: when_no_match
         httpMethod: POST
         type: aws_proxy
@@ -68,7 +68,7 @@ paths:
         responses:
           default:
             statusCode: "200"
-        uri: arn:aws:apigateway:__REGION__:lambda:path/2015-03-31/functions/arn:aws:lambda:__REGION__:__ACCOUNTID__:function:lambda-two-cfn:live/invocations
+        uri: arn:aws:apigateway:__REGION__:lambda:path/2015-03-31/functions/arn:aws:lambda:__REGION__:__ACCOUNTID__:function:lambda-two-{{ cookiecutter.cloudformation_resource_suffix.lower() }}-cfn:live/invocations
         passthroughBehavior: when_no_match
         httpMethod: POST
         type: aws_proxy

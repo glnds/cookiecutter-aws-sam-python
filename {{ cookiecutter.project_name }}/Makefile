@@ -5,6 +5,7 @@
 SHELL=bash
 
 APP_NAME={{ cookiecutter.project_name.lower().replace(' ', '-') }}
+SUFFIX={{ cookiecutter.cloudformation_resource_suffix.lower() }}
 
 # In order to use moto in AWS CodeBuild the following to environment varibales need to be unset.
 # https://forums.aws.amazon.com/thread.jspa?messageID=785174
@@ -74,16 +75,16 @@ sam: _clone_service_to_build
 create-pipeline:
 	@:$(call check_defined, OAUTH_TOKEN)
 	@echo "Creating Cloudformation Stack ${APP_NAME}-pipeline."
-	@aws cloudformation create-stack --stack-name ${APP_NAME}-pipeline --template-body file://pipeline.yaml --parameters \
+	@aws cloudformation create-stack --stack-name ${APP_NAME}-${SUFFIX}-pipeline --template-body file://pipeline.yaml --parameters \
 		ParameterKey=ApplicationName,ParameterValue=${APP_NAME} \
-		ParameterKey=ArtifactBucket,ParameterValue={{ cookiecutter.artifacts_bucket }} \
+		ParameterKey=ArtifactBucket,ParameterValue=${APP_NAME}-${SUFFIX}-cfn \
 		ParameterKey=GitHubOAuthToken,ParameterValue=${OAUTH_TOKEN} \
 		ParameterKey=GitHubUser,ParameterValue={{ cookiecutter.github_user }} \
 		ParameterKey=GitHubRepository,ParameterValue={{ cookiecutter.github_repo }} \
 		ParameterKey=GitHubBranch,ParameterValue=master \
 		--region eu-west-1 --capabilities CAPABILITY_NAMED_IAM --output text
 	@echo "Waiting for Cloudformation stack to complete..."
-	@aws cloudformation wait stack-create-complete --region eu-west-1 --stack-name ${APP_NAME}-pipeline
+	@aws cloudformation wait stack-create-complete --region eu-west-1 --stack-name ${APP_NAME}-${SUFFIX}-pipeline
 	@echo "Deployment complete!"
 .PHONY: create-pipeline
 
@@ -91,16 +92,16 @@ create-pipeline:
 update-pipeline:
 	@:$(call check_defined, OAUTH_TOKEN)
 	@echo "updating Cloudformation Stack ${APP_NAME}-pipeline."
-	@aws cloudformation update-stack --stack-name ${APP_NAME}-pipeline --template-body file://pipeline.yaml --parameters \
+	@aws cloudformation update-stack --stack-name ${APP_NAME}-${SUFFIX}-pipeline --template-body file://pipeline.yaml --parameters \
 		ParameterKey=ApplicationName,ParameterValue=${APP_NAME} \
-		ParameterKey=ArtifactBucket,ParameterValue={{ cookiecutter.artifacts_bucket }} \
+		ParameterKey=ArtifactBucket,ParameterValue=${APP_NAME}-${SUFFIX}-cfn \
 		ParameterKey=GitHubOAuthToken,ParameterValue=${OAUTH_TOKEN} \
 		ParameterKey=GitHubUser,ParameterValue={{ cookiecutter.github_user }} \
 		ParameterKey=GitHubRepository,ParameterValue={{ cookiecutter.github_repo }} \
 		ParameterKey=GitHubBranch,ParameterValue=master \
 		--region eu-west-1 --capabilities CAPABILITY_NAMED_IAM --output text
 	@echo "Waiting for Cloudformation update stack to complete..."
-	@aws cloudformation wait stack-update-complete --region eu-west-1 --stack-name ${APP_NAME}-pipeline
+	@aws cloudformation wait stack-update-complete --region eu-west-1 --stack-name ${APP_NAME}-${SUFFIX}-pipeline
 	@echo "Stack update complete!"
 .PHONY: update-pipeline
 

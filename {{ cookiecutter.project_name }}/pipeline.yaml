@@ -57,6 +57,28 @@ Metadata:
         default: OAuth2 Token
 
 Resources:
+    ApplicationBucket:
+        Type: AWS::S3::Bucket
+        Properties:
+            BucketName: {{ cookiecutter.project_name.lower().replace(' ', '-') }}-{{ cookiecutter.cloudformation_resource_suffix.lower() }}-cfn
+            VersioningConfiguration:
+              Status: Enabled
+            LifecycleConfiguration:
+                Rules:
+                  - Id: ExpireArtifactsAfter{{ cookiecutter.artifacts_retention_days }}Days
+                    Status: Enabled
+                    Prefix: "artifacts"
+                    ExpirationInDays: {{ cookiecutter.artifacts_retention_days }}
+                    NoncurrentVersionExpirationInDays: {{ cookiecutter.artifacts_retention_days }}
+            CorsConfiguration:
+              CorsRules:
+                - AllowedMethods:
+                    - GET
+                    - HEAD
+                  AllowedOrigins:
+                    - "https://*.execute-api.eu-west-1.amazonaws.com"
+        DeletionPolicy: Retain
+
     CodeBuildServiceRole:
         Type: AWS::IAM::Role
         Properties:
@@ -71,7 +93,7 @@ Resources:
                         - codebuild.amazonaws.com
             Path: /
             Policies:
-                - PolicyName: !Sub ${ApplicationName}CodeBuildPolicy
+                - PolicyName: !Sub ${ApplicationName}CodeBuildPolicy-{{ cookiecutter.cloudformation_resource_suffix.lower() }}-cfn
                   PolicyDocument:
                     Version: '2012-10-17'
                     Statement:
@@ -84,7 +106,7 @@ Resources:
     CodeBuildProject:
         Type: AWS::CodeBuild::Project
         Properties:
-            Name: !Sub ${ApplicationName}-build-cfn
+            Name: !Sub ${ApplicationName}-build-{{ cookiecutter.cloudformation_resource_suffix.lower() }}-cfn
             Description: !Sub Build project for ${ApplicationName}
             Artifacts:
               Name: !Ref ApplicationName
@@ -110,7 +132,7 @@ Resources:
     CodeBuildSwaggerUI:
         Type: AWS::CodeBuild::Project
         Properties:
-            Name: !Sub ${ApplicationName}--swaggerui-build-cfn
+            Name: !Sub ${ApplicationName}--swaggerui-build-{{ cookiecutter.cloudformation_resource_suffix.lower() }}-cfn
             Description: !Sub Deploy Swagger UI for ${ApplicationName}
             Artifacts:
                 Type: CODEPIPELINE
@@ -128,7 +150,7 @@ Resources:
                             commands:
                               - chmod +x swagger_build.sh
                               - ./swagger_build.sh
-                              - aws s3 cp --recursive --acl public-read ./swagger-ui/dist s3://{{ cookiecutter.artifacts_bucket }}/{{ cookiecutter.project_name.lower().replace(' ', '-') }}/docs
+                              - aws s3 cp --recursive --acl public-read ./swagger-ui/dist s3://{{ cookiecutter.project_name.lower().replace(' ', '-') }}-{{ cookiecutter.cloudformation_resource_suffix.lower() }}-cfn/docs
 
     CodePipelineServiceRole:
         Type: AWS::IAM::Role
@@ -144,7 +166,7 @@ Resources:
                         - codepipeline.amazonaws.com
             Path: /
             Policies:
-                - PolicyName: !Sub ${ApplicationName}CodePipelineAccess
+                - PolicyName: !Sub ${ApplicationName}CodePipelineAccess-{{ cookiecutter.cloudformation_resource_suffix.lower() }}-cfn
                   PolicyDocument:
                     Version: '2012-10-17'
                     Statement:
@@ -198,7 +220,7 @@ Resources:
                 - cloudformation.amazonaws.com
         Path: /
         Policies:
-          - PolicyName: !Sub ${ApplicationName}PipeleinCFExecutionAccess
+          - PolicyName: !Sub ${ApplicationName}PipeleinCFExecutionAccess-{{ cookiecutter.cloudformation_resource_suffix.lower() }}-cfn
             PolicyDocument:
               Version: '2012-10-17'
               Statement:
@@ -257,7 +279,7 @@ Resources:
             ArtifactStore:
               Location: !Ref ArtifactBucket
               Type: S3
-            Name: !Sub ${ApplicationName}-pipeline-cfn
+            Name: !Sub ${ApplicationName}-pipeline-{{ cookiecutter.cloudformation_resource_suffix.lower() }}-cfn
             RoleArn: !GetAtt CodePipelineServiceRole.Arn
             Stages:
                 - Name: Source
@@ -303,8 +325,8 @@ Resources:
                       Configuration:
                         ActionMode: CHANGE_SET_REPLACE
                         RoleArn: !GetAtt PipelineCloudFormationExecutionRole.Arn
-                        StackName: !Sub ${ApplicationName}
-                        ChangeSetName: !Sub ${ApplicationName}-changeset
+                        StackName: !Sub ${ApplicationName}-{{ cookiecutter.cloudformation_resource_suffix.lower() }}
+                        ChangeSetName: !Sub ${ApplicationName}-changeset-{{ cookiecutter.cloudformation_resource_suffix.lower() }}
                         TemplatePath: BuildZip::output.yml
                         TemplateConfiguration: BuildZip::configuration.json
                         Capabilities: CAPABILITY_NAMED_IAM
@@ -318,10 +340,10 @@ Resources:
                       Configuration:
                         ActionMode: CHANGE_SET_EXECUTE
                         RoleArn: !GetAtt PipelineCloudFormationExecutionRole.Arn
-                        StackName: !Sub ${ApplicationName}
-                        ChangeSetName: !Sub ${ApplicationName}-changeset
+                        StackName: !Sub ${ApplicationName}-{{ cookiecutter.cloudformation_resource_suffix.lower() }}
+                        ChangeSetName: !Sub ${ApplicationName}-changeset-{{ cookiecutter.cloudformation_resource_suffix.lower() }}
                       OutputArtifacts:
-                        - Name: !Sub ${ApplicationName}-changeset
+                        - Name: !Sub ${ApplicationName}-changeset-{{ cookiecutter.cloudformation_resource_suffix.lower() }}
                       RunOrder: 2
                     - Name: DeploySwaggerUI
                       ActionTypeId:

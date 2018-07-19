@@ -17,34 +17,65 @@ Globals:
       Type: Canary10Percent5Minutes
 
 Resources:
+  # Assure API Gateways is enabled in the AWS Account otherwise 'AWS::ApiGateway::Account' will fail!
+  # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-apigateway-account.html
+  ApiKey:
+    Type: AWS::ApiGateway::ApiKey
+    Properties:
+      Name: {{ cookiecutter.project_name.lower().replace(' ', '-') }}-{{ cookiecutter.cloudformation_resource_suffix.lower() }}-dummy-api-key-cfn
+      Description: Dummy API key to ensure API Gateway is enabled
+      Enabled: false
+
+  ApiGWCloudWatchRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - apigateway.amazonaws.com
+            Action: sts:AssumeRole
+      Path: "/"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs
+
+  Account:
+    Type: AWS::ApiGateway::Account
+    Properties:
+      CloudWatchRoleArn: !GetAtt ApiGWCloudWatchRole.Arn
+    DependsOn: ApiKey
+
   ApiGateway:
     Type: AWS::Serverless::Api
     Properties:
-      Name: {{ cookiecutter.project_name.lower().replace(' ', '-') }}
+      Name: {{ cookiecutter.project_name.lower().replace(' ', '-') }}-{{ cookiecutter.cloudformation_resource_suffix.lower() }}-cfn
       DefinitionUri: swagger.yaml
       StageName: Prod
       EndpointConfiguration: REGIONAL
       Variables:
         Region: !Ref AWS::Region
         AccountId: !Ref AWS::AccountId
-        ApidocsUrl: s3-eu-west-1.amazonaws.com/{{ cookiecutter.artifacts_bucket }}/{{ cookiecutter.project_name.lower().replace(' ', '-') }}/docs/index.html
+        ApidocsUrl: s3-eu-west-1.amazonaws.com/{{ cookiecutter.project_name.lower().replace(' ', '-') }}-{{ cookiecutter.cloudformation_resource_suffix.lower() }}-cfn/docs/index.html
       MethodSettings:
         - MetricsEnabled: True
           LoggingLevel: INFO
           ResourcePath: "/"
           HttpMethod: "*"
           DataTraceEnabled: True
+    DependsOn: Account
 
   LambdaOneFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: /aws/lambda/lambda-one-cfn
+      LogGroupName: /aws/lambda/lambda-one-{{ cookiecutter.cloudformation_resource_suffix.lower() }}-cfn
       RetentionInDays: 7
 
   LambdaOneFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
-      FunctionName: lambda-one-cfn
+      FunctionName: lambda-one-{{ cookiecutter.cloudformation_resource_suffix.lower() }}-cfn
       Handler: my_module/lambda_one.lambda_handler
       CodeUri: build/
       Events:
@@ -69,7 +100,7 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmDescription: errors on lambda one
-      AlarmName: Check-Lambda-One-Errors
+      AlarmName: Check-Lambda-One-Errors-{{ cookiecutter.cloudformation_resource_suffix.lower() }}-cfn
       ActionsEnabled: True
       ComparisonOperator: GreaterThanThreshold
       EvaluationPeriods: 1
@@ -89,7 +120,7 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmDescription: errors on lambda one live alias
-      AlarmName: Check-Lambda-One-Live-Errors
+      AlarmName: Check-Lambda-One-Live-Errors-{{ cookiecutter.cloudformation_resource_suffix.lower() }}-cfn
       ActionsEnabled: True
       ComparisonOperator: GreaterThanThreshold
       EvaluationPeriods: 1
@@ -108,7 +139,7 @@ Resources:
   PreTrafficLambdaOneFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: CodeDeployHook_lamda-one-pre-traffic-cfn
+      FunctionName: CodeDeployHook_lamda-one-pre-traffic-{{ cookiecutter.cloudformation_resource_suffix.lower() }}-cfn
       Handler: my_module/lambda_one_pre_traffic_hook.handler
       CodeUri: build/
       DeploymentPreference:
@@ -133,13 +164,13 @@ Resources:
   LambdaTwoFunctionLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: /aws/lambda/lambda-two-cfn
+      LogGroupName: /aws/lambda/lambda-two-{{ cookiecutter.cloudformation_resource_suffix.lower() }}-cfn
       RetentionInDays: 7
 
   LambdaTwoFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
-      FunctionName: lambda-two-cfn
+      FunctionName: lambda-two-{{ cookiecutter.cloudformation_resource_suffix.lower() }}-cfn
       Handler: my_module/lambda_two.lambda_handler
       CodeUri: build/
       Events:
@@ -158,7 +189,7 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmDescription: errors on lambda two
-      AlarmName: Check-Lambda-Two-Errors
+      AlarmName: Check-Lambda-Two-Errors-{{ cookiecutter.cloudformation_resource_suffix.lower() }}-cfn
       ActionsEnabled: True
       ComparisonOperator: GreaterThanThreshold
       EvaluationPeriods: 1
@@ -178,7 +209,7 @@ Resources:
     Type: AWS::CloudWatch::Alarm
     Properties:
       AlarmDescription: errors on lambda two live alias
-      AlarmName: Check-Lambda-Two-Live-Errors
+      AlarmName: Check-Lambda-Two-Live-Errors-{{ cookiecutter.cloudformation_resource_suffix.lower() }}-cfn
       ActionsEnabled: True
       ComparisonOperator: GreaterThanThreshold
       EvaluationPeriods: 1
